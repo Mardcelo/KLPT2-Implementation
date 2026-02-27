@@ -1,5 +1,4 @@
 KLPT2_VERBOSE := false;
-
 procedure SetKLPT2Verbose(flag)
     KLPT2_VERBOSE := flag;
 end procedure;
@@ -121,7 +120,7 @@ end function;
 function KLPT_EquivalentPrimeIdeal(ctx, I, bannedIdeals)
     Ibasis := KLPT_ReducedBasis(ctx, I);
     N := Integers()!Norm(I);
-    // Slightly wider than the Sage defaults to make the search more robust in Magma.
+    // I think this is better. 
     m := Max(Floor(Log(RealField()!ctx`p) / 5), 15);
 
     found := false;
@@ -164,7 +163,7 @@ function KLPT_EquivalentPrimeIdeal(ctx, I, bannedIdeals)
     end for;
 
     if not found then
-        // Fallback: wider random search if the deterministic sweep misses.
+        // Fallback so we get wider search. 
         for _ in [1 .. 20000] do
             a1 := Random(0, 3 * m);
             a2 := Random(-3 * m, 3 * m);
@@ -438,7 +437,7 @@ function KLPT_WithTarget(ctx, I, T)
     while (not nuFound) and (outerIter lt maxOuter) do
         outerIter +:= 1;
         if (origN gt 2) and (origN lt Floor(Sqrt(RealField()!p))) and (GCD(origN, 2 * q) eq 1) and IsProbablyPrime(origN) and not (I in banned) then
-            KLPT2VPrint("KLPT: original ideal already prime and small");
+            KLPT2VPrint("KLPT: original ideal is already prime and small enough");
             II := I;
             alpha_marked := B!origN;
         else
@@ -735,7 +734,7 @@ function ConnectMatricesReduced(g1, g2, O : L := 2, E := 0)
 end function;
 
 ////////////////////////////////////////////////////////////////////////
-// Sage-style wrappers (names kept close to the original .sage files)
+// Sage style wrapper
 ////////////////////////////////////////////////////////////////////////
 
 function ConjugateTranspose(M)
@@ -759,12 +758,12 @@ function Compute_bd_KLPT(O, a, c : L := 2, e := 300)
 end function;
 
 function ChoosePolarisationPrimePower_Reduced(g, O, t2 : L := 2)
-    // `t2` is accepted for signature compatibility with Sage code.
+    // `t2` is accepted for signature 
     return ChoosePolarisationPrimePowerReduced(g, O : L := L, E := 0);
 end function;
 
 function ConnectMatrices_Reduced(D, g1, g2, O : L := 2)
-    // `D` is accepted for signature compatibility with Sage code.
+    // `D` is accepted for signature 
     return ConnectMatricesReduced(g1, g2, O : L := L, E := 0);
 end function;
 
@@ -807,6 +806,8 @@ function FastExampleConnect(: L := 2, E := 0, Attempts := 10)
 
     error "FastExampleConnect failed to produce a valid connecting matrix within Attempts";
 end function;
+
+// Tests 
 
 procedure VerifyFastExampleMagma(: L := 2, E := 0, Attempts := 10)
     gamma, ellPow, _, _, _, _, metrics, g1, g2 := FastExampleConnect(: L := L, E := E, Attempts := Attempts);
