@@ -561,19 +561,19 @@ function ComputeAC(O, g : L := 2, E := 0)
 
         c2 := Integers()!c20;
         c1 := Integers()!c10;
-        if ((c1 - c2) mod 2) ne 1 then
-            continue;
-        end if;
-
+        
         c := c1 * Conjugate(r) * j + c2 * Conjugate(r) * k;
         A0 := Le - t * Integers()!Norm(c);
+        
         if A0 mod s ne 0 then
             continue;
         end if;
+        
         A1 := A0 div s;
-        A := A1 div TwoAdicPart(A1);
-        if (A gt 0) and IsPrime(A) and (A mod 4 eq 1) then
-            okTS, x, y := SolveBinaryQF(1, A);
+
+        // SolveBinaryQF(1, A1) solves x^2 + y^2 = A1 perfectly for composites too.
+        if A1 gt 0 then
+            okTS, x, y := SolveBinaryQF(1, A1);
             if okTS then
                 found := true;
                 a1 := x;
@@ -600,19 +600,23 @@ function ComputeO1O2(O, alpha, a, c)
     gamma := c * Conjugate(a);
     gCoeff := Eltseq(gamma);
 
+    // R!gCoeff[1] handles retional as long as its gcd(denom, nc) = 1
     M := Matrix(R, 4, 4, [
         R!gCoeff[1], R!(-gCoeff[2]), R!(-gCoeff[3] * p), R!(-gCoeff[4] * p),
         R!gCoeff[2], R!( gCoeff[1]), R!( gCoeff[4] * p), R!(-gCoeff[3] * p),
         R!gCoeff[3], R!(-gCoeff[4]), R!( gCoeff[1]),     R!( gCoeff[2]),
         R!gCoeff[4], R!( gCoeff[3]), R!(-gCoeff[2]),     R!( gCoeff[1])
     ]);
+    
     V := Vector(R, [R!alphaCoeff[t] : t in [1 .. 4]]);
-    o2vec := Solution(M, V);
+    
+    o2vec := Solution(Transpose(M), V);
     o2 := B!(Integers()!o2vec[1] + Integers()!o2vec[2] * i + Integers()!o2vec[3] * j + Integers()!o2vec[4] * k);
 
     oca := o2 * gamma;
     ocaCoeff := Eltseq(oca);
     denomAlpha := LCM([Denominator(x) : x in alphaCoeff]);
+    
     if denomAlpha eq 2 then
         beta := alpha - (1 + i + j + k) / 2;
     else
@@ -620,12 +624,14 @@ function ComputeO1O2(O, alpha, a, c)
     end if;
     betaCoeff := Eltseq(beta);
 
+    // Coerce subtraction 
     q1, r1 := Quotrem(Integers()!(betaCoeff[1] - ocaCoeff[1]), nc);
     q2, r2 := Quotrem(Integers()!(betaCoeff[2] - ocaCoeff[2]), nc);
     q3, r3 := Quotrem(Integers()!(betaCoeff[3] - ocaCoeff[3]), nc);
-    q4, r4 := Quotrem(Integers()!(betaCxoeff[4] - ocaCoeff[4]), nc);
+    q4, r4 := Quotrem(Integers()!(betaCoeff[4] - ocaCoeff[4]), nc); // Fixed typo here
+    
     if not ((r1 eq 0) and (r2 eq 0) and (r3 eq 0) and (r4 eq 0)) then
-        error "ComputeO1O2 failed: o2 does not satisfy modular constraints";
+        error "ComputeO1O2 failed due to o2 does not satisfy modular constraints";
     end if;
 
     if denomAlpha eq 2 then
@@ -635,7 +641,7 @@ function ComputeO1O2(O, alpha, a, c)
     end if;
 
     if not (o1 * Norm(c) + o2 * c * Conjugate(a) eq alpha) then
-        error "ComputeO1O2 failed: output does not satisfy the defining equation";
+        error "ComputeO1O2 failed du to output does not satisfy the defining equation";
     end if;
 
     return o1, o2;
@@ -798,7 +804,7 @@ function FastExampleConnect(: L := 2, E := 0, Attempts := 10)
                 return gamma, ellPow, h1, h2, u1, u2, metrics, g1, g2;
             end if;
         catch err
-            KLPT2VPrint("FastExampleConnect: attempt failed; retrying");
+            KLPT2VPrint("FastExampleConnect: attempt failed lemme try again");
         end try;
     end for;
 
@@ -810,10 +816,10 @@ end function;
 procedure VerifyFastExampleMagma(: L := 2, E := 0, Attempts := 10)
     gamma, ellPow, _, _, _, _, metrics, g1, g2 := FastExampleConnect(: L := L, E := E, Attempts := Attempts);
     ok := ConjugateTransposeQ(gamma) * g2 * gamma eq ellPow * g1;
-    print "Verification (gamma^* g2 gamma == ellPow * g1):", ok;
+    print "gamma^* g2 gamma == ellPow * g1", ok;
     print "ellPow:", ellPow;
     print "metrics <e1,f1,e2,f2>:", metrics;
-    print "gamma:", gamma;
+    print "gamma", gamma;
 end procedure;
 
 procedure FastExampleMagma()
