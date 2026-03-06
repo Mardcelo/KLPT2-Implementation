@@ -733,9 +733,7 @@ function ConnectMatricesReduced(g1, g2, O : L := 2, E := 0)
     return gamma, ellPow, h1, h2, u1, u2, <e1, f1, e2, f2>;
 end function;
 
-////////////////////////////////////////////////////////////////////////
-// Sage style wrapper
-////////////////////////////////////////////////////////////////////////
+// Wrapper from Sage
 
 function ConjugateTranspose(M)
     return ConjugateTransposeQ(M);
